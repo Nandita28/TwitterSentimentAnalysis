@@ -1,0 +1,180 @@
+---
+title: "Twitter Sentiment Analysis"
+output: pdf_document
+---
+
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+## Packages for getting Tweets
+##
+library(twitteR)
+library(httr)
+library(ROAuth)
+
+##
+## Packages for working with Tweet data
+##
+library(plyr)
+library(stringr)
+
+##
+## Package for graphing data
+library(ggplot2)
+```
+
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+# Read in dictionary of positive and negative works
+yay <- scan('positive-words.txt', 
+            what='character', comment.char=';')
+boo <- scan('negative-words.txt',
+            what='character', comment.char=';')
+
+# Add a few twitter and #BvS-specific negative phrases
+bad_text <- c(boo)
+good_text <- c(yay)
+
+######################################################################
+# Here is our sentiment score function
+######################################################################
+score.sentiment <- function(sentences, good_text, bad_text,.progress='none')
+{
+  # we got a vector of sentences. plyr will handle a list
+  # or a vector as an "l" for us
+  # we want a simple array of scores back, so we use
+  # "l" + "a" + "ply" = "laply":
+  scores <- laply(sentences, function(sentence, good_text, bad_text) {
+    
+    # clean up sentences with R's regex-driven global substitute,gsub():
+    sentence <- gsub('[[:punct:]]', '', sentence)
+    sentence <- gsub('[[:cntrl:]]', '', sentence)
+    sentence <- gsub('\\d+', '', sentence)
+    #to remove emojis
+    sentence <- iconv(sentence, 'UTF-8', 'ASCII')
+    sentence <- tolower(sentence)
+    # split into words. str_split is in the stringr package
+    word.list <- str_split(sentence, '\\s+')
+    # sometimes a list() is one level of hierarchy too much
+    words <- unlist(word.list)
+    
+    # compare our words to the dictionaries of positive & negative terms
+    pos.matches <- match(words, good_text)
+    neg.matches <- match(words, bad_text)
+    
+    # match() returns the position of the matched term or NA
+    # we just want a TRUE/FALSE:
+    pos.matches <- !is.na(pos.matches)
+    neg.matches <- !is.na(neg.matches)
+    
+    # and conveniently enough, TRUE/FALSE will be treated as 1/0 by
+    # sum():
+    score <- sum(pos.matches) - sum(neg.matches)
+    
+    return(score)
+  }, good_text, bad_text, .progress=.progress )
+  
+  scores.df <- data.frame(score=scores, text=sentences)
+  return(scores.df)
+}
+
+```
+
+
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+##Read the tweets about language Java from csv file
+programdata <- read.csv("language.csv")
+langtweets.text = programdata$x
+
+# Call the function and return a data frame for language Java
+javalanguage <- score.sentiment(langtweets.text, good_text, bad_text,
+                       .progress='text')
+javalanguage$name <- 'Programming language Java'
+plotlangdat <- javalanguage
+
+# Cut the text, just gets in the way
+plotlangdat <- javalanguage[c("name", "score")]
+
+# Remove of values greater than -10 and less than 10
+plotlangdat <- plotlangdat[plotlangdat$score >= -3 & 
+            plotlangdat$score <= 3 & !plotlangdat$score == 0, ]
+
+```
+
+
+#Twitter sentiment on language Java
+
+```{r echo=FALSE}
+# Plot twitter sentiment on language Java
+qplot(factor(score), data=plotlangdat, geom="bar",
+      fill=factor(name),
+      xlab = "Sentiment Score")
+```
+
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+###Read the tweets about Hillary clinton
+persondata <- read.csv("person.csv")
+persontweets.text = persondata$x
+
+# Call the function and return a data frame for Hillary Clinton
+persondf <- score.sentiment(persontweets.text, good_text, bad_text,
+                                .progress='text')
+persondf$name <- 'Hillary Clinton'
+plotpersondat <- persondf
+
+# Cut the text, just gets in the way
+plotpersondat <- persondf[c("name", "score")]
+
+# Remove of values greater than -10 and less than 10
+plotpersondat <- plotpersondat[plotpersondat$score >= -3 & 
+            plotpersondat$score <= 3 & !plotpersondat$score == 0, ]
+
+```
+
+#Twitter sentiment on Hillary clinton
+
+```{r echo=FALSE}
+
+# Plot twitter sentiment on Hillary Clinton
+qplot(factor(score), data=plotpersondat, geom="bar",
+      fill=factor(name),
+      xlab = "Sentiment Score")
+
+```
+
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+###Read the tweets about Apple Inc
+orgdata <- read.csv("organization.csv")
+orgtweets.text = orgdata$x
+
+# Call the function and return a data frame for Apple Inc
+organizationdf <- score.sentiment(orgtweets.text, good_text, bad_text,
+                                .progress='text')
+organizationdf$name <- 'Apple Inc'
+plotorgdat <- organizationdf
+
+# Cut the text, just gets in the way
+plotorgdat <- organizationdf[c("name", "score")]
+
+# Remove of values greater than -10 and less than 10
+plotorgdat <- plotorgdat[plotorgdat$score >= -3 & 
+            plotorgdat$score <= 3 & !plotorgdat$score == 0, ]
+
+
+
+```
+
+#Twitter sentiment on Apple Inc
+
+```{r echo=FALSE}
+
+# Plot twitter sentiment on Apple Inc
+qplot(factor(score), data=plotorgdat, geom="bar",
+      fill=factor(name),
+      xlab = "Sentiment Score")
+```

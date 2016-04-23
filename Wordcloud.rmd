@@ -1,0 +1,102 @@
+---
+title: "Twitter Sentiment Analysis"
+output: pdf_document
+---
+
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+library("twitteR")
+library("httr")
+library("stringr")
+library("wordcloud")
+```
+
+#Word cloud on programming language Java
+
+```{r echo=FALSE}
+
+#clean data on programming language java
+programdata <- read.csv("language.csv")
+sentence = programdata$x
+sentence = gsub('[[:punct:]]', '', sentence)
+sentence = gsub('[[:cntrl:]]', '', sentence)
+sentence = gsub('\\d+', '', sentence)
+sentence = gsub("http\\w+", "", sentence)
+
+#to remove emojis
+sentence <- iconv(sentence, 'UTF-8', 'ASCII')
+sentence = tolower(sentence)     
+
+# split into words. str_split is in the stringr package
+word.list = str_split(sentence, '\\s+')
+
+# sometimes a list() is one level of hierarchy too much
+words <- unlist(word.list)
+
+#create word cloud
+wordcloud(words, scale=c(5,0.5), max.words=25, random.order=FALSE, 
+          rot.per=0.35, use.r.layout=FALSE, colors=brewer.pal(8, "Dark2"))
+
+
+```
+
+#Word cloud on Hillary Clinton
+
+```{r echo=FALSE}
+
+#clean data on personality
+persondata <- read.csv("person.csv")
+sentence = persondata$x
+sentence = gsub('[[:punct:]]', '', sentence)
+sentence = gsub('[[:cntrl:]]', '', sentence)
+sentence = gsub('\\d+', '', sentence)
+sentence = gsub("http\\w+", "", sentence)
+
+#Substitute HillaryClinton with hillary as it is big to fit in word cloud
+sentence = gsub("HillaryClinton", "hillary", sentence)
+sentence = gsub("hillaryclinton", "hillary", sentence)
+write.table(sentence, file="samp.csv")
+#to remove emojis
+sentence <- iconv(sentence, 'UTF-8', 'ASCII')
+sentence = tolower(sentence)     
+
+# split into words. str_split is in the stringr package
+word.list = str_split(sentence, '\\s+')
+
+# sometimes a list() is one level of hierarchy too much
+words <- unlist(word.list)
+
+#create word cloud
+wordcloud(words, scale=c(5,0.5), max.words=25, random.order=FALSE, 
+          rot.per=0.35, use.r.layout=FALSE, colors=brewer.pal(8, "Dark2"))
+
+```
+
+#Word cloud on Apple Inc
+
+```{r echo=FALSE}
+
+#clean data on organization 
+orgdata <- read.csv("organization.csv")
+sentence = orgdata$x
+sentence = gsub('[[:punct:]]', '', sentence)
+sentence = gsub('[[:cntrl:]]', '', sentence)
+sentence = gsub('\\d+', '', sentence)
+sentence = gsub("http\\w+", "", sentence)
+
+#to remove emojis
+sentence <- iconv(sentence, 'UTF-8', 'ASCII')
+sentence = tolower(sentence)     
+
+# split into words. str_split is in the stringr package
+word.list = str_split(sentence, '\\s+')
+
+# sometimes a list() is one level of hierarchy too much
+words <- unlist(word.list)
+
+#create word cloud
+wordcloud(words, scale=c(5,0.5), max.words=25, random.order=FALSE, 
+          rot.per=0.35, use.r.layout=FALSE, colors=brewer.pal(8, "Dark2"))
+
+```
